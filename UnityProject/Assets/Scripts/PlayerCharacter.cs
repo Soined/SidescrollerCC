@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerCharacter : CharacterController2D
+public class PlayerCharacter : CharacterController2D, IDamageable
 {
     private Vector2 moveInput = Vector2.zero;
+
+    public CharacterAbility fireAbility;
 
     [SerializeField]
     private int jumps = 3;
@@ -14,14 +16,21 @@ public class PlayerCharacter : CharacterController2D
         base.Start();
         base.OnLandedEvent += OnLanded;
         OnGroundLeftEvent += OnGroundLeft;
+
+        fireAbility.Setup(this);
     }
+    protected override void Update()
+    {
+        base.Update();
+        fireAbility.Update();
+    }
+
     private void OnGroundLeft()
     {
         currentJumps--;
     }
     private void OnLanded()
     {
-        Debug.Log($"landed");
         currentJumps = jumps;
     }
 
@@ -49,7 +58,7 @@ public class PlayerCharacter : CharacterController2D
     {
         if (context.performed) //= GetKeyDown
         {
-
+            fireAbility.OnAbilityButtonDown();
         }
     }
     public void JumpInput(InputAction.CallbackContext context)
@@ -66,5 +75,10 @@ public class PlayerCharacter : CharacterController2D
     {
         base.OnLandedEvent -= OnLanded;
         OnGroundLeftEvent -= OnGroundLeft;
+    }
+
+    public void TakeDamage(int damage)
+    {
+        
     }
 }
