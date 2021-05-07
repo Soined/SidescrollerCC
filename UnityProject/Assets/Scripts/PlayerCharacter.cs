@@ -1,11 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerCharacter : CharacterController2D, IDamageable
+public class PlayerCharacter : CharacterController2D, IDamagable
 {
     private Vector2 moveInput = Vector2.zero;
 
+
     public CharacterAbility fireAbility;
+
 
     [SerializeField]
     private int jumps = 3;
@@ -19,6 +21,7 @@ public class PlayerCharacter : CharacterController2D, IDamageable
 
         fireAbility.Setup(this);
     }
+
     protected override void Update()
     {
         base.Update();
@@ -31,6 +34,7 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     }
     private void OnLanded()
     {
+        Debug.Log($"landed");
         currentJumps = jumps;
     }
 
@@ -79,6 +83,6 @@ public class PlayerCharacter : CharacterController2D, IDamageable
 
     public void TakeDamage(int damage)
     {
-        
+       
     }
 }

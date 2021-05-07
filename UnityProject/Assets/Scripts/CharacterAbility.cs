@@ -2,13 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class CharacterAbility : ScriptableObject
 {
     public bool IsOnCooldown { get => _cooldown > 0f; }
 
+
     public float cooldown = 3f;
     private float _cooldown = 0f;
     protected PlayerCharacter character;
+
     public void Setup(PlayerCharacter character)
     {
         this.character = character;
@@ -21,6 +24,7 @@ public class CharacterAbility : ScriptableObject
         if (!IsOnCooldown) return;
 
         _cooldown -= Time.deltaTime;
+                
     }
 
     public void OnAbilityButtonDown()
@@ -29,6 +33,7 @@ public class CharacterAbility : ScriptableObject
 
         OnAbilityStarted();
     }
+
     public void OnAbilityButtonUp()
     {
         OnAbilityKeyUp();
@@ -41,5 +46,10 @@ public class CharacterAbility : ScriptableObject
 
     protected virtual void OnAbilityStarted() { }
     protected virtual void OnAbilityUpdate() { }
+
+    /// <summary>
+    /// Is called whenever the AbilityButton is released
+    /// </summary>
     protected virtual void OnAbilityKeyUp() { }
+    
 }
