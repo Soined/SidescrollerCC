@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerCharacter : CharacterController2D, IDamagable
+public class PlayerCharacter : CharacterController2D, IDamageable
 {
     private Vector2 moveInput = Vector2.zero;
 

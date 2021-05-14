@@ -2,31 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bullets : MonoBehaviour
+public class Bullets : Projectile
 {
-    Vector2 direction = Vector2.right;
-    float speed = 0f;
-    int damage = 0;
+    private void Update()
+    {
+        Move();
+    }
 
-
-    public void Setup(Vector2 direction, float speed, int damage)
+    public override void Setup(Vector2 direction, float speed, int damage)
     {
         this.direction = direction;
         this.speed = speed;
         this.damage = damage;
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        transform.Translate(direction * Time.deltaTime * speed);
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if(collision.collider.GetComponent<IDamagable>() != null)
-        {
-            collision.collider.GetComponent<IDamagable>().TakeDamage(damage);
-        }
-    }
+    
 }

@@ -368,7 +368,7 @@ MonoBehaviour:
   speed: 5
   jumpForce: 12
   debugRays: 1
-  fireAbility: {fileID: 11400000, guid: f2140f6b349ac4049a5422f10497291f, type: 2}
+  fireAbility: {fileID: 11400000, guid: b861f97eaf9cf7946a8a42d5fa866cb7, type: 2}
   jumps: 3
 --- !u!114 &2018824800
 MonoBehaviour:
