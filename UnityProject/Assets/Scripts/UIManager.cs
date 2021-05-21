@@ -5,6 +5,10 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
+    private UIState state;
+
+    [SerializeField] private GameObject HUDpanel, pausePanel, dialoguePanel;
+
     public static UIManager Main;
 
     [SerializeField] private TextMeshProUGUI TimerText;
@@ -26,7 +30,6 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        Time.timeScale = 10;
         TimerText.text = "test";
     }
     private void Update()
@@ -42,4 +45,35 @@ public class UIManager : MonoBehaviour
 
         //Timer, der entsprechend bei 00:00 hochzählt.
     }
+
+    public void ChangeUIState(UIState newState)
+    {
+        DeactivateAllPanels();
+        switch(newState)
+        {
+            case UIState.HUD:
+                HUDpanel.SetActive(true);
+                break;
+            case UIState.Pause:
+                pausePanel.SetActive(true);
+                break;
+            case UIState.Dialogue:
+                dialoguePanel.SetActive(true);
+                break;
+        }
+        state = newState;
+    }
+    private void DeactivateAllPanels()
+    {
+        HUDpanel.SetActive(false);
+        pausePanel.SetActive(false);
+        dialoguePanel.SetActive(false);
+    }
+}
+
+public enum UIState
+{
+    HUD,
+    Pause,
+    Dialogue
 }

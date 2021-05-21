@@ -10,22 +10,39 @@ public class PlayerCharacter : CharacterController2D, IDamageable
 
 
     [SerializeField]
-    private int jumps = 3;
-    private int currentJumps = 3;
+    private int maxJumps = 3;
+    private int currentJumps = 0;
+
+    [Header("Walljump")]
+    [SerializeField]
+    private float justWallJumpedTime = 1f;
+    private float _justWallJumpedTime = 0;
+    private bool justWallJumped
+    {
+        get => _justWallJumpedTime > 0;
+    }
+    [SerializeField]
+    private float wallJumpForce = 4f;
+    private float _wallJumpForce = 4f;
+    [SerializeField]
+    private float wallSlideSpeed = 3f;
 
     protected override void Start()
     {
         base.Start();
-        base.OnLandedEvent += OnLanded;
-        OnGroundLeftEvent += OnGroundLeft;
+        collision.OnLandedEvent += OnLanded;
+        collision.OnGroundLeftEvent += OnGroundLeft;
 
         fireAbility.Setup(this);
+        currentJumps = maxJumps;
     }
 
     protected override void Update()
     {
         base.Update();
         fireAbility.Update();
+
+        if(justWallJumped) _justWallJumpedTime -= Time.deltaTime;
     }
 
     private void OnGroundLeft()
@@ -35,13 +52,67 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     private void OnLanded()
     {
         Debug.Log($"landed");
-        currentJumps = jumps;
+        currentJumps = maxJumps;
     }
 
     private void FixedUpdate()
     {
-        Move(moveInput.x); 
+        HandleMove();
+        HandleWallSlide();
     }
+    private void HandleMove()
+    {
+        float moveXdelta = moveInput.x * speed;
+
+        float moveModifier = justWallJumped ? _wallJumpForce : 0f;
+
+        if(moveModifier != 0f)
+        {
+            moveXdelta *= .5f;
+        }
+
+        Move(moveXdelta + moveModifier);
+    }
+
+    private void HandleWallSlide()
+    {
+        if(!collision.Grounded && (collision.leftCollision || collision.rightCollision) && rigid.velocity.y <= 0)
+        {
+            rigid.velocity = new Vector2(rigid.velocity.x, -wallSlideSpeed);
+            currentJumps = maxJumps - 1;
+            rigid.gravityScale = 0;
+        } else
+        {
+            rigid.gravityScale = 3;
+        }
+    }
+
+    private void HandleJump()
+    {
+        if (!collision.Grounded) //In der Luft
+        {
+            if (collision.rightCollision || collision.leftCollision)
+            {
+                currentJumps = maxJumps;
+                _justWallJumpedTime = justWallJumpedTime;
+                _wallJumpForce = collision.rightCollision ? -wallJumpForce : wallJumpForce;
+            }
+            else if (!(currentJumps > 0))
+            {
+                return;
+            }
+            currentJumps--;
+        }
+
+        Jump();
+    }
+
+    public void TakeDamage(int damage)
+    {
+
+    }
+
+    #region Input
 
     public void MoveInput(InputAction.CallbackContext context)
     {
@@ -49,9 +120,10 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     }
     public void DashInput(InputAction.CallbackContext context)
     {
+        if (GameManager.Main.GameState != GameState.Playing) return;
         if(context.performed) //= GetKeyDown
         {
-
+            
         }
         if(context.canceled) //GetKeyUp
         {
@@ -60,6 +132,8 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     }
     public void FireInput(InputAction.CallbackContext context)
     {
+        if (GameManager.Main.GameState != GameState.Playing) return;
+
         if (context.performed) //= GetKeyDown
         {
             fireAbility.OnAbilityButtonDown();
@@ -67,23 +141,27 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     }
     public void JumpInput(InputAction.CallbackContext context)
     {
-        if (context.performed && currentJumps > 0) //= GetKeyDown
+        if (GameManager.Main.GameState != GameState.Playing) return;
+        if (context.performed) //= GetKeyDown
         {
-            if (!Grounded) currentJumps--;
-
-
-            Jump();
+            HandleJump();
         }
     }
 
-    private void OnDisable()
+    public void PauseInput(InputAction.CallbackContext context)
     {
-        base.OnLandedEvent -= OnLanded;
-        OnGroundLeftEvent -= OnGroundLeft;
+        if(context.performed)
+        {
+            if (GameManager.Main.GameState == GameState.Playing) GameManager.Main.ChangeGameState(GameState.Pause);
+            else if (GameManager.Main.GameState == GameState.Pause) GameManager.Main.ChangeGameState(GameState.Playing);
+        }
     }
 
-    public void TakeDamage(int damage)
+    #endregion
+
+    private void OnDisable()
     {
-       
+        collision.OnLandedEvent -= OnLanded;
+        collision.OnGroundLeftEvent -= OnGroundLeft;
     }
 }
