@@ -71,6 +71,7 @@ public class PlayerCharacter : CharacterController2D, IDamageable
         {
             if (!Grounded) currentJumps--;
 
+
             Jump();
         }
     }

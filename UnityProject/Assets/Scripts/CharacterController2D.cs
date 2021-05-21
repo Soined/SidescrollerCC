@@ -60,6 +60,7 @@ public class CharacterController2D : MonoBehaviour
     }
     protected void Jump()
     {
+        SoundManager.Main.PlayNewSound(SoundType.playerJump);
         rigid.velocity = new Vector2(rigid.velocity.x, jumpForce);
     }
 

@@ -43,6 +43,7 @@ public class Boomerang : Projectile
             speed = maxSpeed;
         }
 
+
         Move();
 
 
