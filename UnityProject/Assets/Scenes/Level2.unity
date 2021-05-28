@@ -1674,7 +1674,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2018824797}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.19, y: -1.37, z: 0}
+  m_LocalPosition: {x: -3.21, y: -1.26, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2044174806}
@@ -1696,13 +1696,16 @@ MonoBehaviour:
   groundRays: 6
   bottomRayLength: 0.05
   sideRayLength: 0.05
-  speed: 5
+  maxSpeed: 5
   jumpForce: 12
   debugRays: 1
+  maxFallSpeed: 8
+  airDragMultiplier: 2
+  airControlMultiplier: 15
   fireAbility: {fileID: 11400000, guid: f2140f6b349ac4049a5422f10497291f, type: 2}
   maxJumps: 3
   justWallJumpedTime: 0.4
-  wallJumpForce: 6
+  wallJumpForce: 4
   wallSlideSpeed: 3
 --- !u!114 &2018824800
 MonoBehaviour:

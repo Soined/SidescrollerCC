@@ -62,7 +62,7 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     }
     private void HandleMove()
     {
-        float moveXdelta = moveInput.x * speed;
+        float moveXdelta = moveInput.x;
 
         float moveModifier = justWallJumped ? _wallJumpForce : 0f;
 

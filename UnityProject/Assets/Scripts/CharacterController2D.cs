@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,7 +20,7 @@ public class CharacterController2D : MonoBehaviour
     private float sideRayLength = .02f;
 
     [SerializeField]
-    protected float speed = 5f;
+    protected float maxSpeed = 5f;
     [SerializeField]
     protected float jumpForce = 12f;
 
@@ -28,9 +29,14 @@ public class CharacterController2D : MonoBehaviour
 
     protected CharacterCollision collision;
 
+    [SerializeField]
+    private float maxFallSpeed = 8f;
+    [SerializeField]
+    private float airDragMultiplier = 2f;
+    [SerializeField]
+    private float airControlMultiplier = 10f;
 
-
-
+    protected float xVelocity = 0f;
 
     protected virtual void Start()
     {
@@ -43,10 +49,30 @@ public class CharacterController2D : MonoBehaviour
         HandleCollision();
     }
 
-    protected void Move(float xDelta)
+    protected void Move(float currentInput)
     {
-        rigid.velocity = new Vector2(xDelta, rigid.velocity.y);
+        CalculateXVelocity(currentInput);
+        rigid.velocity = new Vector2(xVelocity, Mathf.Max(rigid.velocity.y, -maxFallSpeed));
     }
+
+    private void CalculateXVelocity(float currentInput)
+    {
+        if (!collision.Grounded)
+        {
+            float currentDrag = maxSpeed * Time.fixedDeltaTime * airDragMultiplier;
+
+            xVelocity = (Mathf.Abs(xVelocity) <= currentDrag) ? 0f
+                : xVelocity - (currentDrag * Mathf.Sign(xVelocity));
+
+            xVelocity += Mathf.Clamp(value: currentInput * maxSpeed * Time.fixedDeltaTime * airControlMultiplier,
+                min: -maxSpeed - xVelocity,
+                max: maxSpeed - xVelocity);
+        } else
+        {
+            xVelocity = currentInput * maxSpeed;
+        }
+    }
+
     protected void Jump()
     {
         SoundManager.Main.PlayNewSound(SoundType.playerJump);
@@ -65,14 +91,12 @@ public class CharacterController2D : MonoBehaviour
                 break;
         }
     }
-
     private void HandleCollision()
     {
         CheckGrounded();
         CheckWalls();
 
     }
-
     private void CheckGrounded()
     {
         Vector2 bottomLeft = col.bounds.center + new Vector3(-col.bounds.extents.x, -col.bounds.extents.y, 0f);
@@ -92,7 +116,6 @@ public class CharacterController2D : MonoBehaviour
         collision.leftCollision = CheckCollisionForSides(bottomLeft, topLeft, Vector2.left, sideRayLength);
 
     }
-
     private bool CheckCollisionForSides(Vector2 point1, Vector2 point2, Vector2 direction, float rayLength)
     {
 
