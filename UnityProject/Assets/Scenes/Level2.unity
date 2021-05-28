@@ -1700,12 +1700,11 @@ MonoBehaviour:
   jumpForce: 12
   debugRays: 1
   maxFallSpeed: 8
-  airDragMultiplier: 2
-  airControlMultiplier: 15
+  airDragMultiplier: 1
+  airControlMultiplier: 10
   fireAbility: {fileID: 11400000, guid: f2140f6b349ac4049a5422f10497291f, type: 2}
   maxJumps: 3
-  justWallJumpedTime: 0.4
-  wallJumpForce: 4
+  wallJumpForce: 12
   wallSlideSpeed: 3
 --- !u!114 &2018824800
 MonoBehaviour:

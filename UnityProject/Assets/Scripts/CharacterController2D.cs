@@ -59,16 +59,21 @@ public class CharacterController2D : MonoBehaviour
     {
         if (!collision.Grounded)
         {
-            float currentDrag = maxSpeed * Time.fixedDeltaTime * airDragMultiplier;
+            //Die Reibung in der Luft im aktuellen Frame
+            float currentDrag = maxSpeed * Time.fixedDeltaTime * airDragMultiplier
+                * ((Mathf.Sign(currentInput) == Mathf.Sign(xVelocity)) ? 0.4f : 1f);
 
+            //Wenden Reibung auf unsere aktuelle Geschwindigkeit (xVelocity) an.
+            //Sollte unsere xVelocity kleiner als die abzuziehende Reibung sein, xVelocity = 0 (um nicht zu overshotten).
             xVelocity = (Mathf.Abs(xVelocity) <= currentDrag) ? 0f
                 : xVelocity - (currentDrag * Mathf.Sign(xVelocity));
 
+            //Addieren auf unsere xVelocity entsprechenden Input und Speed.
             xVelocity += Mathf.Clamp(value: currentInput * maxSpeed * Time.fixedDeltaTime * airControlMultiplier,
-                min: -maxSpeed - xVelocity,
-                max: maxSpeed - xVelocity);
+                min: -maxSpeed - Mathf.Max(-maxSpeed, xVelocity), //Stellen sicher, dass wir keine Geschwindigkeit addieren, falls
+                max: maxSpeed - Mathf.Min(maxSpeed, xVelocity)); //bereits über maxSpeed sind.
         } else
-        {
+        { //Aktuell einfach Präzise Movement für Boden
             xVelocity = currentInput * maxSpeed;
         }
     }
@@ -78,7 +83,16 @@ public class CharacterController2D : MonoBehaviour
         SoundManager.Main.PlayNewSound(SoundType.playerJump);
         rigid.velocity = new Vector2(rigid.velocity.x, jumpForce);
     }
-
+    public void AddForce(Vector2 value) //Für später, wird noch nicht gebraucht
+    {
+        xVelocity += value.x;
+        rigid.velocity = new Vector2(rigid.velocity.x, rigid.velocity.y + value.y);
+    }
+    public void SetForce(Vector2 value) //Für Walljump
+    {
+        xVelocity = value.x;
+        rigid.velocity = new Vector2(rigid.velocity.x, value.y);
+    }
     protected void ChangeCharacterState(CharacterState newState)
     {
         switch (newState)

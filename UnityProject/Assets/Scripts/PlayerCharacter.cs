@@ -15,15 +15,7 @@ public class PlayerCharacter : CharacterController2D, IDamageable
 
     [Header("Walljump")]
     [SerializeField]
-    private float justWallJumpedTime = 1f;
-    private float _justWallJumpedTime = 0;
-    private bool justWallJumped
-    {
-        get => _justWallJumpedTime > 0;
-    }
-    [SerializeField]
     private float wallJumpForce = 4f;
-    private float _wallJumpForce = 4f;
     [SerializeField]
     private float wallSlideSpeed = 3f;
 
@@ -41,8 +33,6 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     {
         base.Update();
         fireAbility.Update();
-
-        if(justWallJumped) _justWallJumpedTime -= Time.deltaTime;
     }
 
     private void OnGroundLeft()
@@ -62,16 +52,7 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     }
     private void HandleMove()
     {
-        float moveXdelta = moveInput.x;
-
-        float moveModifier = justWallJumped ? _wallJumpForce : 0f;
-
-        if(moveModifier != 0f)
-        {
-            moveXdelta *= .5f;
-        }
-
-        Move(moveXdelta + moveModifier);
+        Move(moveInput.x);
     }
 
     private void HandleWallSlide()
@@ -93,9 +74,7 @@ public class PlayerCharacter : CharacterController2D, IDamageable
         {
             if (collision.rightCollision || collision.leftCollision)
             {
-                currentJumps = maxJumps;
-                _justWallJumpedTime = justWallJumpedTime;
-                _wallJumpForce = collision.rightCollision ? -wallJumpForce : wallJumpForce;
+                WallJump();
             }
             else if (!(currentJumps > 0))
             {
@@ -105,6 +84,12 @@ public class PlayerCharacter : CharacterController2D, IDamageable
         }
 
         Jump();
+    }
+    private void WallJump()
+    {
+        currentJumps = maxJumps;
+        //Wir setzen xVelocity im Controller auf wallJumpForce, bzw. -wallJumpForce, je nach dem, in welche Richtung wir walljumpen
+        SetForce(new Vector2((collision.rightCollision) ? -wallJumpForce : wallJumpForce, rigid.velocity.y));
     }
 
     public void TakeDamage(int damage)
