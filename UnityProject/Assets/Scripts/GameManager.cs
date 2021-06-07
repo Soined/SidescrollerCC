@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
                 break;
             case GameState.Dialogue:
                 UIManager.Main.ChangeUIState(UIState.Dialogue);
+                Time.timeScale = 0;
                 break;
         }
         gameState = newState;

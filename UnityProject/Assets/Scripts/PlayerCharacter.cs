@@ -57,7 +57,7 @@ public class PlayerCharacter : CharacterController2D, IDamageable
 
     private void HandleWallSlide()
     {
-        if(!collision.Grounded && (collision.leftCollision || collision.rightCollision) && rigid.velocity.y <= 0)
+        if(!collision.Grounded && (collision.leftCollision || collision.rightCollision) && rigid.velocity.y <= 0.1f)
         {
             rigid.velocity = new Vector2(rigid.velocity.x, -wallSlideSpeed);
             currentJumps = maxJumps - 1;
@@ -97,7 +97,9 @@ public class PlayerCharacter : CharacterController2D, IDamageable
 
     }
 
-    #region Input
+    //TODO: Subscribe to GameManager OnGameStateChanged()
+
+    #region GPInput
 
     public void MoveInput(InputAction.CallbackContext context)
     {
@@ -142,6 +144,12 @@ public class PlayerCharacter : CharacterController2D, IDamageable
         }
     }
 
+    #endregion
+    #region UIInput
+    public void OnSubmitButtonDown(InputAction.CallbackContext context)
+    {
+        UIManager.Main.OnSubmitButton();
+    }
     #endregion
 
     private void OnDisable()

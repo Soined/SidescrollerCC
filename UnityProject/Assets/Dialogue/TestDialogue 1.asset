@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b73a23828646ef42951fc1e3b7f11d6, type: 3}
+  m_Name: TestDialogue 1
+  m_EditorClassIdentifier: 
+  boxes:
+  - name: Robert
+    text: Hallo Katja!
+  - name: Katja
+    text: Hallo Erik!
+  - name: Alex
+    text: Ich hasse euch beide wie die Pest
+  - name: Alex
+    text: Ich hasse euch!

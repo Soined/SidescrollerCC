@@ -109,7 +109,6 @@ public class CharacterController2D : MonoBehaviour
     {
         CheckGrounded();
         CheckWalls();
-
     }
     private void CheckGrounded()
     {

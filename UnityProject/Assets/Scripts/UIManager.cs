@@ -2,12 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class UIManager : MonoBehaviour
 {
     private UIState state;
 
     [SerializeField] private GameObject HUDpanel, pausePanel, dialoguePanel;
+
+    [SerializeField] private TextBox dialogueBox;
 
     public static UIManager Main;
 
@@ -43,6 +46,12 @@ public class UIManager : MonoBehaviour
         TimerText.text = $"{currentMinutes.GetAsDoubleDigit()}:{currentSeconds.GetAsDoubleDigit()}";
 
 
+#if UNITY_EDITOR
+        if (Keyboard.current.uKey.wasPressedThisFrame)
+        {
+            GameManager.Main.ChangeGameState(GameState.Dialogue);
+        }
+#endif
         //Timer, der entsprechend bei 00:00 hochzählt.
     }
 
@@ -68,6 +77,19 @@ public class UIManager : MonoBehaviour
         HUDpanel.SetActive(false);
         pausePanel.SetActive(false);
         dialoguePanel.SetActive(false);
+    }
+    public void OnDialogueFinished()
+    {
+        GameManager.Main.ChangeGameState(GameState.Playing);
+    }
+    public void StartNewDialogue(Dialogue newDialogue)
+    {
+        GameManager.Main.ChangeGameState(GameState.Dialogue);
+        dialogueBox.StartNewDialogue(newDialogue);
+    }
+    public void OnSubmitButton()
+    {
+        dialogueBox.SubmitButton();
     }
 }
 
