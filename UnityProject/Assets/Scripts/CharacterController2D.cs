@@ -23,9 +23,24 @@ public class CharacterController2D : MonoBehaviour
     protected float maxSpeed = 5f;
     [SerializeField]
     protected float jumpForce = 12f;
+    private float justJumpedTime = .1f;
+    private float _justJumpedTime = 0f;
+    protected bool justJumped { get => _justJumpedTime >= 0; set => _justJumpedTime = value ? justJumpedTime : 0f; }
+
+    [SerializeField]
+    protected float gravityScale = 1f;
+    private const float gravity = 9.81f;
+    protected Vector2 velocity = new Vector2();
+
+    //Disables all Velocity calculations on X-Axis for this frame
+    private bool xForceSetThisFrame = false;
+    //Disables all Velocity calculations on Y-Axis for this frame
+    private bool yForceSetThisFrame = false;
 
     [SerializeField]
     private bool debugRays = false;
+    [SerializeField]
+    protected LayerMask groundLayer;
 
     protected CharacterCollision collision;
 
@@ -36,62 +51,103 @@ public class CharacterController2D : MonoBehaviour
     [SerializeField]
     private float airControlMultiplier = 10f;
 
-    protected float xVelocity = 0f;
-
     protected virtual void Start()
     {
         rigid = GetComponent<Rigidbody2D>();
         col = GetComponent<BoxCollider2D>();
+        collision.OnLandedEvent += ResetGravity;
     }
 
     protected virtual void Update()
     {
         HandleCollision();
+
+        if (justJumped) _justJumpedTime -= Time.deltaTime;
     }
 
     protected void Move(float currentInput)
     {
         CalculateXVelocity(currentInput);
-        rigid.velocity = new Vector2(xVelocity, Mathf.Max(rigid.velocity.y, -maxFallSpeed));
+        CalculateYVelocity();
+
+        xForceSetThisFrame = false;
+        yForceSetThisFrame = false;
+
+        rigid.MovePosition(transform.position + (Vector3)velocity * Time.fixedDeltaTime);
+    }
+    private void CalculateYVelocity()
+    {
+        if (yForceSetThisFrame) return;
+        if (!collision.Grounded)
+        {
+            velocity.y -= gravity * Time.fixedDeltaTime * gravityScale;
+            velocity.y = Mathf.Max(velocity.y, -maxFallSpeed);
+        }
+    }
+    private void ApplyInputOnVelocity(float currentInput)
+    {
+        //TODO
     }
 
     private void CalculateXVelocity(float currentInput)
     {
+        if (xForceSetThisFrame) return;
         if (!collision.Grounded)
         {
             //Die Reibung in der Luft im aktuellen Frame
             float currentDrag = maxSpeed * Time.fixedDeltaTime * airDragMultiplier
-                * ((Mathf.Sign(currentInput) == Mathf.Sign(xVelocity)) ? 0.4f : 1f);
+                * ((Mathf.Sign(currentInput) == Mathf.Sign(velocity.x)) ? 0.4f : 1f);
 
             //Wenden Reibung auf unsere aktuelle Geschwindigkeit (xVelocity) an.
             //Sollte unsere xVelocity kleiner als die abzuziehende Reibung sein, xVelocity = 0 (um nicht zu overshotten).
-            xVelocity = (Mathf.Abs(xVelocity) <= currentDrag) ? 0f
-                : xVelocity - (currentDrag * Mathf.Sign(xVelocity));
+            velocity.x = (Mathf.Abs(velocity.x) <= currentDrag) ? 0f
+                : velocity.x - (currentDrag * Mathf.Sign(velocity.x));
 
             //Addieren auf unsere xVelocity entsprechenden Input und Speed.
-            xVelocity += Mathf.Clamp(value: currentInput * maxSpeed * Time.fixedDeltaTime * airControlMultiplier,
-                min: -maxSpeed - Mathf.Max(-maxSpeed, xVelocity), //Stellen sicher, dass wir keine Geschwindigkeit addieren, falls
-                max: maxSpeed - Mathf.Min(maxSpeed, xVelocity)); //bereits über maxSpeed sind.
-        } else
-        { //Aktuell einfach Präzise Movement für Boden
-            xVelocity = currentInput * maxSpeed;
+            velocity.x += Mathf.Clamp(value: currentInput * maxSpeed * Time.fixedDeltaTime * airControlMultiplier,
+                min: -maxSpeed - Mathf.Max(-maxSpeed, velocity.x), //Stellen sicher, dass wir keine Geschwindigkeit addieren, falls
+                max: maxSpeed - Mathf.Min(maxSpeed, velocity.x)); //bereits über maxSpeed sind.
         }
+        else
+        { //Aktuell einfach Präzise Movement für Boden
+            velocity.x = currentInput * maxSpeed;
+        }
+    }
+
+    private void ResetGravity()
+    {
+        velocity.y = 0;
     }
 
     protected void Jump()
     {
         SoundManager.Main.PlayNewSound(SoundType.playerJump);
-        rigid.velocity = new Vector2(rigid.velocity.x, jumpForce);
+        velocity.y = jumpForce;
+        justJumped = true;
     }
     public void AddForce(Vector2 value) //Für später, wird noch nicht gebraucht
     {
-        xVelocity += value.x;
-        rigid.velocity = new Vector2(rigid.velocity.x, rigid.velocity.y + value.y);
+        velocity += value;
     }
-    public void SetForce(Vector2 value) //Für Walljump
+    public void SetForce(Vector2 value)
     {
-        xVelocity = value.x;
-        rigid.velocity = new Vector2(rigid.velocity.x, value.y);
+        SetXForce(value.x);
+        SetYForce(value.y);
+    }
+    /// <summary>
+    /// No gravity will be applied the frame this function is called
+    /// </summary>
+    /// <param name="value"></param>
+    public void SetYForce(float value)
+    {
+        if (justJumped) return;
+        yForceSetThisFrame = true;
+        velocity.y = value;
+    }
+    public void SetXForce(float value)
+    {
+        xForceSetThisFrame = true;
+        velocity.x = value;
     }
     protected void ChangeCharacterState(CharacterState newState)
     {
@@ -139,19 +195,24 @@ public class CharacterController2D : MonoBehaviour
             if (hasHit) break;
 
             Vector2 origin = point1 + i * ((point2 - point1) / (groundRays - 1));
-            RaycastHit2D[] hits = Physics2D.RaycastAll(origin, direction, rayLength);
+            RaycastHit2D[] hits = Physics2D.RaycastAll(origin, direction, rayLength, groundLayer);
 
             if (debugRays)
                 Debug.DrawRay(new Vector3(origin.x, origin.y, 0f), direction * rayLength, Color.red, .1f);
 
             foreach (RaycastHit2D hit in hits)
             {
-                if (hit.collider == col) continue;
+                if (hit.collider == col || hit.collider.isTrigger) continue;
 
                 hasHit = true;
             }
         }
         return hasHit;
+    }
+
+    private void OnDestroy()
+    {
+        collision.OnLandedEvent -= ResetGravity;
     }
 }
 

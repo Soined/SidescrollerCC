@@ -15,8 +15,8 @@ TagManager:
   - PlayerBullet
   - Enemy
   - EnemyBullet
-  - 
-  - 
+  - NPC
+  - EnemyDCollider
   - 
   - 
   - 

@@ -18,6 +18,9 @@ public class UIManager : MonoBehaviour
 
     private float currentTime = 0;
 
+    public delegate void Action();
+    public Action OnDialogueFinished;
+
     private void Awake()
     {
         if (Main == null)
@@ -78,9 +81,10 @@ public class UIManager : MonoBehaviour
         pausePanel.SetActive(false);
         dialoguePanel.SetActive(false);
     }
-    public void OnDialogueFinished()
+    public void DialogueFinished()
     {
         GameManager.Main.ChangeGameState(GameState.Playing);
+        OnDialogueFinished?.Invoke();
     }
     public void StartNewDialogue(Dialogue newDialogue)
     {

@@ -19,6 +19,18 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     [SerializeField]
     private float wallSlideSpeed = 3f;
 
+    private IInteractable interactable;
+    public IInteractable Interactable
+    {
+        get => interactable;
+        set
+        {
+            if (interactable != null) interactable.OnCurrentLost();
+            interactable = value;
+            if (interactable != null) interactable.OnCurrent();
+        }
+    }
+
     protected override void Start()
     {
         base.Start();
@@ -41,14 +53,13 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     }
     private void OnLanded()
     {
-        Debug.Log($"landed");
         currentJumps = maxJumps;
     }
 
     private void FixedUpdate()
     {
-        HandleMove();
         HandleWallSlide();
+        HandleMove();
     }
     private void HandleMove()
     {
@@ -59,12 +70,8 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     {
         if(!collision.Grounded && (collision.leftCollision || collision.rightCollision) && rigid.velocity.y <= 0.1f)
         {
-            rigid.velocity = new Vector2(rigid.velocity.x, -wallSlideSpeed);
             currentJumps = maxJumps - 1;
-            rigid.gravityScale = 0;
-        } else
-        {
-            rigid.gravityScale = 3;
+            SetYForce(-wallSlideSpeed);
         }
     }
 
@@ -89,7 +96,7 @@ public class PlayerCharacter : CharacterController2D, IDamageable
     {
         currentJumps = maxJumps;
         //Wir setzen xVelocity im Controller auf wallJumpForce, bzw. -wallJumpForce, je nach dem, in welche Richtung wir walljumpen
-        SetForce(new Vector2((collision.rightCollision) ? -wallJumpForce : wallJumpForce, rigid.velocity.y));
+        SetXForce((collision.rightCollision) ? -wallJumpForce : wallJumpForce);
     }
 
     public void TakeDamage(int damage)
@@ -123,6 +130,12 @@ public class PlayerCharacter : CharacterController2D, IDamageable
 
         if (context.performed) //= GetKeyDown
         {
+            if(Interactable != null)
+            {
+                Interactable.OnInteract();
+                return;
+            }
+
             fireAbility.OnAbilityButtonDown();
         }
     }
@@ -151,6 +164,21 @@ public class PlayerCharacter : CharacterController2D, IDamageable
         UIManager.Main.OnSubmitButton();
     }
     #endregion
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.GetComponent<IInteractable>() is IInteractable inter)
+        {
+            Interactable = inter;
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.GetComponent<IInteractable>() != null)
+        {
+            Interactable = null;
+        }
+    }
 
     private void OnDisable()
     {
